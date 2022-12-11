@@ -3,7 +3,7 @@ import random as rd
 
 # CLASS
 
-class Player:
+class Player:  # TODO: Remake the system so it's a single-player and not multiplayer
     def __init__(self, name: str) -> None:
         self.name = name
         self.hand = []
@@ -53,7 +53,7 @@ class Player:
         return f'score: {self.score}'
 
 
-class Card:
+class Card:  # TODO: Remake the visibility of cards
     def __init__(self, value: int, color: str) -> None:
         self.value = value
         self.color = color.upper()
@@ -131,3 +131,5 @@ if __name__ == '__main__':
 
     for player in players:
         print(player)
+
+# TODO: make a split system and a money system
