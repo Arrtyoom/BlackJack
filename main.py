@@ -1,64 +1,97 @@
 import random as rd
-
+from time import sleep
 
 # CLASS
 
-class Player:  # TODO: Remake the system so it's a single-player and not multiplayer
-    def __init__(self, name: str) -> None:
+
+class Player:
+    def __init__(self, name):
         self.name = name
         self.hand = []
-        self.score = 0
+
         self.money = 50
+        self.amount = 0
 
         self.is_dealer = False
 
     def __str__(self):
-        msg = ''
-        for card in self.hand:
-            msg += f"""
-                {card}"""
+        if not self.is_dealer:
+            return f"""
+{self.name:_<20}:
 
-        score = self.calculate_score()
+    score: {self.get_score()}
+    money: {self.money}
+    bet: {self.amount}
 
-        return f"""
-        {self.name:_^20}:
-        
-        {score}
-        money: ${self.money}
+    hand: {self.show_hand()}
+        """
 
-        hand: {msg}"""
+        else:
+            return f"""
+{self.name:_<20}:
+
+    score: {self.get_score()}
+
+    hand: {self.show_hand()}
+        """
+
+    def bet(self):
+        while True:
+            self.amount = int(input("amount of the bet: "))
+            if self.amount <= self.money:
+                self.money -= self.amount
+                break
 
     def draw_card(self, n=1):
+        print(f"{self.name} draw a card!")
         colors = ['CLUB', 'DIAMOND', 'HEART', 'SPADE']
 
         for _ in range(n):
-            value = rd.randint(1, 13)
+            value = rd.randint(1, 14)
             color = rd.randint(0, 3)
 
-            c = Card(value, colors[color])
-            self.hand.append(c)
+            self.hand.append(Card(value, colors[color]))
 
-    def calculate_score(self):
-        self.score = 0
+    def show_hand(self):
+        msg = ''
+        for card in self.hand:
+            msg += f"""
+            {card}"""
+        return msg
+
+    def get_score(self):
+        score = 0
         is_as = False
 
-        for c in self.hand:
-            self.score += c.value
-            if c.value == 11:
-                is_as = True
+        for card in self.hand:
+            score += card.value
+            try:
+                if card.name == 'AS':
+                    is_as = True
+            except:
+                continue
 
-        if self.score > 21 and is_as:
-            self.score -= 10
+        if score > 21 and is_as:
+            score -= 10
 
-        return f'score: {self.score}'
+        return score
+
+    def is_busted(self):
+        score = self.get_score()
+
+        if score > 21:
+            return True
+        else:
+            return False
 
 
-class Card:  # TODO: Remake the visibility of cards
+class Card:
+    """
+    Class for making Card object (value and color) with black jake rules
+    """
     def __init__(self, value: int, color: str) -> None:
         self.value = value
         self.color = color.upper()
-
-        self.hidden = False
 
         figure = {
             1: 'AS',
@@ -79,57 +112,84 @@ class Card:  # TODO: Remake the visibility of cards
         assert self.color in ['CLUB', 'DIAMOND', 'HEART', 'SPADE'], f'{self.color} is not a color'
 
     def __str__(self) -> str:
-        if not self.hidden:
-            try:
-                return f"{self.name}:{self.color}"
-            except:
-                return f"{self.value}:{self.color}"
-        else:
-            return "[Hidden Card]"
+        try:
+            return f"{self.name}:{self.color}"
+        except:
+            return f"{self.value}:{self.color}"
 
-# FUNCTION
-
-
-def new_player(name=None):
-    if name is None:
-        name = str(input('name: '))
-    return Player(name)
-
-
-def show_players(players: list):
-    msg = ''
-    for i, player in enumerate(players):
-        msg = msg + f"""
-        player_{i}: {player.name}"""
-    return msg
-
-
-def setup(players: list):
-    # adding dealer to the game
-    d = new_player('Dealer')
-    d.is_dealer = True
-    players.append(d)
-
-    # adding players in the game
-    nb_player = int(input('number of player: '))
-
-    for _ in range(nb_player):
-        temp = new_player()
-        players.append(temp)
-
-    # adding 2 card to everyone
-
-    for p in players:
-        p.draw_card(2)
 
 # PROGRAMME
 
-
 if __name__ == '__main__':
-    players = []
-    setup(players)
+    # setup
+    dealer, player = Player("Dealer"), Player("Samuel")  # Player(str(input("name: ")))
+    dealer.is_dealer = True
 
-    for player in players:
+    while player.money > 0:
+        # start of game
+        # step 1: bet phase
+        player.bet()
+
+        # step 2: drawing phase
+        dealer.draw_card()
+        player.draw_card(2)
+
+        # step 3: looking at our score and hand
+        print(dealer)
         print(player)
 
-# TODO: make a split system and a money system
+        # start of player turn
+        while True:
+            if player.is_busted():
+                print(f"{player.name} is Busted!")
+                break
+
+            question = str(input("draw a card ?[y/n]:"))
+            # TODO: set double down
+            # TODO: set split
+
+            if question == 'y':
+                player.draw_card()
+            elif question == 'n':
+                break
+            else:
+                continue
+
+            print(player)
+
+        # start of dealer turn
+        dealer.draw_card()
+        print(dealer)
+        while not player.is_busted():
+            sleep(2)
+            if dealer.is_busted():
+                print(f"{dealer.name} is Busted!")
+                break
+
+            if dealer.get_score() < player.get_score():
+                dealer.draw_card()
+                print(dealer)
+                continue
+            else:
+                break
+
+        # Who win
+        amount = player.amount
+        if player.is_busted() or player.get_score() < dealer.get_score():
+            print(f"{dealer.name} win")
+        elif dealer.is_busted() or dealer.get_score() < player.get_score():
+            print(f"{player.name} win {amount * 2}")
+            player.money += amount * 2
+        else:
+            # TODO: Push = take back the bet
+            # TODO: Draw = take back half of it
+            print(f"Push, nobody win, receive {amount // 2}")
+            player.money += amount // 2
+
+        player.hand = []
+        dealer.hand = []
+
+        print(player)
+
+    print(f"{player.name} lose because he's out of money")
+
