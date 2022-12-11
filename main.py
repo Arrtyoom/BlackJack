@@ -5,6 +5,9 @@ from time import sleep
 
 
 class Player:
+    """
+    Class for making Player object (for Dealer to)
+    """
     def __init__(self, name):
         self.name = name
         self.hand = []
@@ -67,7 +70,7 @@ class Player:
             score += card.value
             try:
                 if card.name == 'AS':
-                    is_as = True
+                    is_as = True  # TODO: set so if there are multiple AS's it can use them as one
             except:
                 continue
 
