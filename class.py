@@ -108,10 +108,7 @@ def ascii_version_of_hidden_card(*cards):
 
 
 # drawing cards
-def draw_card():
-    # suit
 
-    # rank
 
 # TEST CASES
 test_card_1 = Card('Diamonds', '4')
